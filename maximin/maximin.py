@@ -1,22 +1,25 @@
-import numpy as np
 import math
-
+import numpy as np
 
 class Maximin:
 
     k = 0
     cluster_centers = np.empty([0, 0])
 
+    #  X: matrix of (n_samples, n_features). Training instances to cluster.
     def fit(self, X):
         # reset
         self.k = 0
         self.cluster_centers = np.empty([0, 0])
 
-        n_samples = X.shape[0]
+        # TODO add normalization in the future
+        X_scaled = X
+
+        n_samples = X_scaled.shape[0]
         # indexes of the sample from training data, which is the center of clusters
         sample_index_as_cluster_center = []
         # indexes of the cluster for each sample
-        cluster_labels_for_samples = [0] * X.shape[0]
+        cluster_labels_for_samples = [0] * X_scaled.shape[0]
         # np.array with shape(n_samples, n_cluster)
         distance_to_each_cluster = np.empty([0, 0])
 
@@ -86,11 +89,14 @@ class Maximin:
                 indexes = sample_index_as_cluster_center + new_cluster_indexes
                 max_valid_distance = get_new_valid_distance(X, indexes)
 
-        clusters = list(map(lambda index: X[index], sample_index_as_cluster_center))
+        clusters = list(
+            map(lambda index: X[index], sample_index_as_cluster_center))
         self.cluster_centers = np.array(clusters)
 
     def predict(self, X):
-        n_samples = X.shape[0]
+        # TODO add normalization in the future
+        X_scaled = X
+        n_samples = X_scaled.shape[0]
         distance_to_clusters = np.empty([n_samples, len(self.cluster_centers)])
 
         for i_sample in range(0, n_samples):
@@ -108,7 +114,7 @@ class Maximin:
             row = distance_to_clusters[i]
             cluster_index = row.argmin()
             result[i] = cluster_index
-        
+
         return result
 
 def euclidean_distances(pointA, pointB):
