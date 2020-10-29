@@ -5,9 +5,13 @@ import math
 class Maximin:
 
     k = 0
-    cluster_centers_ = []
+    cluster_centers = np.empty([0, 0])
 
     def fit(self, X):
+        # reset
+        self.k = 0
+        self.cluster_centers = np.empty([0, 0])
+
         n_samples = X.shape[0]
         # indexes of the sample from training data, which is the center of clusters
         sample_index_as_cluster_center = []
@@ -24,28 +28,29 @@ class Maximin:
 
         while len(new_cluster_indexes) > 0:
 
-            # append_new_cluster_index(0, sample_index_as_cluster_center)
+            distance_to_samples = np.empty(
+                [n_samples, len(new_cluster_indexes)])
 
-            distance_to_sample = np.zeros(
-                (n_samples, len(new_cluster_indexes)))
-            for iSample in X:
-                row = X[iSample]
+            for i_sample in range(0, n_samples):
+                sample = X[i_sample]
 
-                for jCluster in new_cluster_indexes:
-                    cluster = X[jCluster]
-                    distance_to_sample[iSample][jCluster] = euclidean_distances(
-                        cluster, iSample)
+                for j in range(len(new_cluster_indexes)):
+                    cluster_index = new_cluster_indexes[j]
+                    cluster = X[cluster_index]
+                    distance_to_samples[i_sample][j] = euclidean_distances(
+                        cluster, sample)
+
+            self.k += len(new_cluster_indexes)
+            sample_index_as_cluster_center = sample_index_as_cluster_center + new_cluster_indexes
+            new_cluster_indexes = []
 
             # Merge old distances with new calculated distances
             if distance_to_each_cluster.shape[0] == 0:
                 # for first iteration it will be single cluster
-                distance_to_each_cluster = distance_to_sample[0].reshape(
-                    n_samples, 1)
+                distance_to_each_cluster = distance_to_samples
             else:
-                for distance_array in distance_to_sample:
-                    transposed = distance_array.reshape(n_samples, 1)
-                    distance_to_each_cluster = np.concatenate(
-                        (distance_to_each_cluster, transposed), axis=1)
+                distance_to_each_cluster = np.concatenate(
+                    (distance_to_each_cluster, distance_to_samples), axis=1)
 
             # find cluster label for each sample
             for i in range(len(distance_to_each_cluster)):
@@ -78,13 +83,33 @@ class Maximin:
 
             # calculate new range
             if len(new_cluster_indexes) > 0:
-                max_valid_distance = get_new_valid_distance(
-                    X, sample_index_as_cluster_center)
+                indexes = sample_index_as_cluster_center + new_cluster_indexes
+                max_valid_distance = get_new_valid_distance(X, indexes)
 
-    def append_new_cluster_index(self, cluster_index, array):
-        array.append(cluster_index)
-        self.k += 1
+        clusters = list(map(lambda index: X[index], sample_index_as_cluster_center))
+        self.cluster_centers = np.array(clusters)
 
+    def predict(self, X):
+        n_samples = X.shape[0]
+        distance_to_clusters = np.empty([n_samples, len(self.cluster_centers)])
+
+        for i_sample in range(0, n_samples):
+            sample = X[i_sample]
+
+            for j in range(len(self.cluster_centers)):
+                cluster = self.cluster_centers[j]
+                distance_to_clusters[i_sample][j] = euclidean_distances(
+                    cluster, sample)
+
+        result = [-1] * n_samples
+
+        # find cluster label for each sample
+        for i in range(len(distance_to_clusters)):
+            row = distance_to_clusters[i]
+            cluster_index = row.argmin()
+            result[i] = cluster_index
+        
+        return result
 
 def euclidean_distances(pointA, pointB):
     x = math.pow(pointA[0] - pointB[0], 2)
@@ -97,12 +122,18 @@ def get_index_of_max_element(array):
     return array.index(max_element)
 
 
-def get_new_valid_distance(samples, cluster_indexes, new_cluster_indexes):
-    # A-B / 2 
+def get_new_valid_distance(samples, cluster_indexes):
 
-    # A-B + A-C + B-C / (3 * 2) 
+    sum = 0
+    count = 0
+    size = len(cluster_indexes)
 
-    # A-B + A-C + A-D + B-C + B-D + C-D / (6 * 2) 
+    for i in range(size - 1):
+        for j in range(i + 1, size):
+            cluster_a_index = cluster_indexes[i]
+            cluster_b_index = cluster_indexes[j]
+            sum += euclidean_distances(samples[cluster_a_index],
+                                       samples[cluster_b_index])
+            count += 1
 
-    # max_valid_distance = max_distance / 2
-    return 0
+    return sum / (count * 2)
