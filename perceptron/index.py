@@ -15,14 +15,14 @@ random.shuffle(iris_dataset)
 
 train_percent = 80
 size = len(iris_dataset)
-train_size = size * train_percent
+train_size = round(size * train_percent / 100)
 
 train = iris_dataset[:train_size]
 test = iris_dataset[train_size:]
 
 train_x = np.array([i[:4] for i in train])
-train_y = np.array([i[4] for i in test])
-test_x = np.array([i[:4] for i in train])
+train_y = np.array([i[4] for i in train])
+test_x = np.array([i[:4] for i in test])
 test_y = np.array([i[4] for i in test])
 
 dictionary = {
@@ -35,3 +35,4 @@ dictionary = {
 
 perceptron = MultiLayerPerceptron(dictionary)
 perceptron.fit(train_x, train_y)
+perceptron.predict(test_x, test_y)

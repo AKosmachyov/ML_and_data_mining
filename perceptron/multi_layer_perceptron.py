@@ -43,18 +43,51 @@ class MultiLayerPerceptron():
                     np.dot(output_l1, self.weight_output) + self.bias_output.T)
 
                 target_output = np.zeros(self.output_layer)
-                # y[index] stores the number of the correct class, numbering starts from 1
-                target_output[0, y[index] - 1] = 1
+                # y[index] stores the number of the correct class, numbering starts from 0
+                target_output[round(y[index])] = 1
 
                 # calculate error
 
-                self.backpropagation()
+                self.backpropagation(
+                    target_output, output_l2, output_l1, inputs)
 
-    def backpropagation(self, target_output, output_l2, output_l1):
-        final_error = output_l2 - target_output
-        signal_error = final_error * logistic_deriv(output_l2)
+    def backpropagation(self, target_output, output_l2, output_l1, x):
+        error_output = target_output - output_l2
+        signal_error = -1 * error_output * logistic_deriv(output_l2)
+
         for i in range(self.hidden_layer):
             for j in range(self.output_layer):
-                self.weight_output[i, j] += self.learning_rate * signal_error[j] * self.output_l1
-                self.bias_output[j] += self.learningRate * signal_error[j]
-        
+                self.weight_output[i][j] -= self.learning_rate * \
+                    signal_error[j] * output_l1[i]
+                self.bias_output[j] -= self.learning_rate * signal_error[j]
+
+        delta_hidden = np.matmul(
+            self.weight_output, signal_error) * logistic_deriv(output_l1)
+
+        for i in range(self.input_layer):
+            for j in range(self.hidden_layer):
+                self.weight_hidden[i][j] -= self.learning_rate * \
+                    delta_hidden[j] * x[i]
+                self.bias_hidden[j] -= self.learning_rate * delta_hidden[j]
+
+    def predict(self, X, y):
+        my_predictions = []
+        forward = np.matmul(X, self.weight_hidden) + self.bias_hidden
+        forward = np.matmul(forward, self.weight_output) + self.bias_output
+
+        for i in forward:
+            my_predictions.append(max(enumerate(i), key=lambda x: x[1])[0])
+
+        print("Number of Sample | Class | Output | Valid Output")
+        for i in range(len(my_predictions)):
+            if(my_predictions[i] == 0):
+                print(
+                    "#:{} | Iris-Setosa         | Output: {}".format(i, y[i]))
+            elif(my_predictions[i] == 1):
+                print(
+                    "#:{} | Iris-Versicolour    | Output: {}".format(i, y[i]))
+            elif(my_predictions[i] == 2):
+                print(
+                    "#:{} | Iris-Iris-Virginica | Output: {}".format(i, y[i]))
+
+        return my_predictions
