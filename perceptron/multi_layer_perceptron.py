@@ -19,10 +19,9 @@ class MultiLayerPerceptron():
         self.bias_hidden_value = -1
         self.bias_output_value = -1
 
-        self.weight_hidden = self.starting_weights(
-            self.hidden_layer, self.input_layer)
-        self.weight_output = self.starting_weights(
-            self.output_layer, self.hidden_layer)
+        self.weight_hidden = np.random.uniform(0, 1, (self.input_layer, self.hidden_layer))
+        self.weight_output = np.random.uniform(0, 1, (self.hidden_layer, self.output_layer))
+    
         self.bias_hidden = np.array(
             [self.bias_hidden_value for i in range(self.hidden_layer)])
         self.bias_output = np.array(
@@ -34,7 +33,9 @@ class MultiLayerPerceptron():
 
     def fit(self, X, y):
         for epoch in range(self.max_epochs):
+            total_error = 0
             for index, inputs in enumerate(X):
+
                 # Forward Propagation
                 output_l1 = logistic(
                     np.dot(inputs, self.weight_hidden) + self.bias_hidden.T)
@@ -46,10 +47,19 @@ class MultiLayerPerceptron():
                 # y[index] stores the number of the correct class, numbering starts from 0
                 target_output[round(y[index])] = 1
 
-                # calculate error
+                square_error = 0
+                for i in range(self.output_layer):
+                    square_error = square_error + \
+                        (target_output[i] - output_l2[i])**2
+                square_error = square_error / self.output_layer
+                total_error = total_error + square_error
 
                 self.backpropagation(
                     target_output, output_l2, output_l1, inputs)
+
+            total_error = (total_error / len(X))
+            if (epoch % 50 == 0):
+                print("Epoch #", epoch, "- Total Error: ", total_error)
 
     def backpropagation(self, target_output, output_l2, output_l1, x):
         error_output = target_output - output_l2
@@ -80,14 +90,6 @@ class MultiLayerPerceptron():
 
         print("Number of Sample | Class | Output | Valid Output")
         for i in range(len(my_predictions)):
-            if(my_predictions[i] == 0):
-                print(
-                    "#:{} | Iris-Setosa         | Output: {}".format(i, y[i]))
-            elif(my_predictions[i] == 1):
-                print(
-                    "#:{} | Iris-Versicolour    | Output: {}".format(i, y[i]))
-            elif(my_predictions[i] == 2):
-                print(
-                    "#:{} | Iris-Iris-Virginica | Output: {}".format(i, y[i]))
+            print("#:{} | {} | Valid: {}".format(i, my_predictions[i], y[i]))
 
         return my_predictions
