@@ -1,43 +1,7 @@
+import { Vector2 } from './Vector2.js';
+
 const canvas = document.getElementById('field');
 const ctx = canvas.getContext('2d');
-
-class Vector2 {
-
-    constructor(x = 0, y = 0) {
-        this.x = x;
-        this.y = y;
-    }
-
-    add(v, w) {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
-    }
-
-    addVectors(v, w) {
-        const result = new Vector2();
-        this.x = v.x + w.x;
-        this.y = v.y + w.y;
-        return result;
-    }
-
-    sub(v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
-    }
-
-    clone() {
-        return new this.constructor(this.x, this.y);
-    }
-
-    copy(v) {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
-    }
-
-}
 
 const MATRIX_SIZE = 30;
 const STEP = 4;
@@ -74,40 +38,73 @@ const downLeft = {
     offset: new Vector2(-STEP, STEP),
 }
 
-const squareRule4 = {
+const triangleRule4 = {
+    name: 'F',
+    x: downLeft
+}
+
+const triangleRule3 = {
+    name: 'E',
+    x: upLeft,
+    y: triangleRule4
+}
+
+const triangleRule2 = {
     name: 'D',
-    x: down.name,
+    x: right,
+    y: triangleRule3
+}
+
+const triangleRule = {
+    name: 'Triangle',
+    x: right,
+    y: triangleRule2,
+}
+
+const squareRule4 = {
+    name: 'C',
+    x: down,
 }
 
 const squareRule3 = {
-    name: 'C',
-    x: left.name,
+    name: 'B',
+    x: left,
     y: squareRule4
 }
 
 const squareRule2 = {
-    name: 'B',
-    x: up.name,
+    name: 'A',
+    x: up,
     y: squareRule3
 }
 
-const SquareRule = {
-    name: 'square',
-    x: right.name,
+const squareRule = {
+    name: 'Square',
+    x: right,
     y: squareRule2
 }
 
-const Vn = [SquareRule.name, squareRule2.name, squareRule3.name, squareRule4.name]; // nonterminal dictionary
+const rootRules = [
+    squareRule,
+    triangleRule
+]
+
+const rootRuleNames = rootRules.map(el => el.name);
+
+const Vn = []; // nonterminal dictionary
 const Vt = [down, right, up, left, upLeft, downLeft]; // terminal dictionary
 
-const P = [
-    SquareRule,
-    squareRule2,
-    squareRule3,
-    squareRule4
-] // rules
+const P = {}; // rules (name: {x, y}
 
-const numberOfFigures = 2
+[...rootRules, squareRule2, squareRule3, squareRule4, triangleRule2, triangleRule3, triangleRule4].forEach(rule => {
+    const { name, x, y } = rule;
+
+    P[name] = {
+        x: isTermElement(x) ? x : x.name,
+        y: y == undefined ? undefined : isTermElement(y) ? y : y.name
+    };
+    Vn.push(name);
+})
 
 let startPoint = PEN_START_POINT.clone();
 ctx.beginPath();
@@ -115,7 +112,7 @@ ctx.moveTo(startPoint.x, startPoint.y);
 
 function draw(term) {
     const endVector = startPoint.clone().add(term.offset);
-    
+
     ctx.lineTo(endVector.x, endVector.y);
 
     const delta = endVector.clone().sub(startPoint);
@@ -151,9 +148,6 @@ draw(right);
 draw(upLeft);
 draw(downLeft);
 
-// draw(down);
-// draw(down);
-
 // draw(right);
 // draw(up);
 // draw(left);
@@ -161,4 +155,93 @@ draw(downLeft);
 
 ctx.stroke();
 
-console.table(matrix);
+function getRule(name, Vn, Vt, P) {
+    const terminalElement = Vt.find(el => el.name == name);
+    if (terminalElement) {
+        return terminalElement;
+    }
+    const nonterminalElement = Vn.indexOf(name) > -1;
+    if (nonterminalElement) {
+        return P[name]
+    }
+
+    console.error(`item "${name}" not found in dictionary`);
+    return null;
+}
+
+function isTermElement(term) {
+    return term.offset instanceof Vector2;
+}
+
+function checkIsValidFigureForRule(ruleName, startPoint, matrix, Vn, Vt, P) {
+    const callstack = [ruleName];
+
+    do {
+        const currentElement = callstack.pop();
+        if (isTermElement(currentElement)) {
+            if (checkIsFilled(startPoint, currentElement, matrix)) {
+                startPoint.add(currentElement.offset);
+            } else {
+                return {
+                    errorMsg: ['Required pattern not found:', currentElement],
+                    successful: false
+                }
+            }
+
+            continue
+        }
+
+        const rule = getRule(currentElement, Vn, Vt, P);
+        if (rule.y) {
+            callstack.push(rule.y)
+        }
+        callstack.push(rule.x);
+    } while (callstack.length != 0)
+
+    return {
+        successful: true,
+    };
+}
+
+rootRuleNames.forEach(rule => {
+    startPoint.copy(PEN_START_POINT);
+    const { successful, errorMsg = [] } = checkIsValidFigureForRule(rule, startPoint, matrix, Vn, Vt, P);
+    console.log(rule, successful ? '✅' : '❌', ...errorMsg);
+})
+
+function checkIsFilled(startPoint, term, matrix) {
+    const endVector = startPoint.clone().add(term.offset);
+    const delta = endVector.clone().sub(startPoint);
+
+    if (delta.x == 0) {
+        const action = Math.sign(delta.y);
+        const max = Math.abs(delta.y);
+        for (let y = 0; y < max; y++) {
+            if (matrix[startPoint.y + action * y][startPoint.x] != 1) {
+                return false
+            }
+        }
+    }
+
+    if (delta.y == 0) {
+        const action = Math.sign(delta.x);
+        const max = Math.abs(delta.x);
+        for (let x = 0; x < max; x++) {
+            if (matrix[startPoint.y][startPoint.x + action * x] != 1) {
+                return false
+            }
+        }
+    }
+
+    // for 45 deg
+    const actionX = Math.sign(delta.x);
+    const actionY = Math.sign(delta.y);
+    const max = Math.abs(delta.x);
+    for (let x = 0; x < max; x++) {
+        if (matrix[startPoint.y + actionY * x][startPoint.x + actionX * x] != 1) {
+            return false;
+        }
+    }
+
+    return true
+}
