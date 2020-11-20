@@ -4,7 +4,7 @@ import { PatternRecognition } from './PatternRecognition.js';
  * @typedef {import('./PatternRecognition').PatternRecognition} PatternRecognition
  */
 
-const STEP = 10;
+const STEP = 30;
 
 const down = {
     name: 'down',
@@ -82,37 +82,43 @@ const rootRules = [
     triangleRule
 ]
 
-const rootRuleNames = rootRules.map(el => el.name);
-
 const Vn = []; // nonterminal dictionary
 const Vt = [down, right, up, left, upLeft, downLeft]; // terminal dictionary
-
 const P = {}; // rules (name: {x, y}
-
-function isTermElement(term) {
-    return term.offset instanceof Vector2;
-}
 
 [...rootRules, squareRule2, squareRule3, squareRule4, triangleRule2, triangleRule3, triangleRule4].forEach(rule => {
     const { name, x, y } = rule;
 
     P[name] = {
-        x: isTermElement(x) ? x : x.name,
-        y: y == undefined ? undefined : isTermElement(y) ? y : y.name
+        x: PatternRecognition.isTerminalElement(x) ? x : x.name,
+        y: y == undefined ? undefined : PatternRecognition.isTerminalElement(y) ? y : y.name
     };
     Vn.push(name);
 })
 
+const rootRuleNames = rootRules.map(el => el.name);
+const SQUARE_START_POINT = new Vector2(100, 100);
+const TRIANGLE_START_POINT = new Vector2(250, 250);
+
+const textNode = document.getElementById('text');
 const canvas = document.getElementById('field');
 const ctx = canvas.getContext('2d');
-const PEN_START_POINT = new Vector2(40, 40);
 
 const patternRecognition = new PatternRecognition(Vt, Vn, P, rootRuleNames, ctx);
-patternRecognition.generate(rootRuleNames[0], PEN_START_POINT);
-patternRecognition.generate(rootRuleNames[1], PEN_START_POINT);
+patternRecognition.generate(rootRuleNames[0], SQUARE_START_POINT);
+patternRecognition.generate(rootRuleNames[1], TRIANGLE_START_POINT);
 
-
+textNode.innerText = '';
+textNode.innerText += `Start from point: (${SQUARE_START_POINT.x}, ${SQUARE_START_POINT.y})\n`
 rootRuleNames.forEach(rule => {
-    const { successful, errorMsg = [] } = patternRecognition.drawingMatchWithAxiom(rule, PEN_START_POINT);
-    console.log(rule, successful ? '✅' : '❌', ...errorMsg);
+    const { successful, errorMsg = [] } = patternRecognition.drawingMatchWithAxiom(rule, SQUARE_START_POINT);
+    textNode.innerText += `${rule}: ${successful ? '✅' : '❌'}\n`;
+    // console.log(rule, successful ? '✅' : '❌', ...errorMsg);
+})
+
+textNode.innerText += `Start from point: (${TRIANGLE_START_POINT.x}, ${TRIANGLE_START_POINT.y})\n`
+rootRuleNames.forEach(rule => {
+    const { successful, errorMsg = [] } = patternRecognition.drawingMatchWithAxiom(rule, TRIANGLE_START_POINT);
+    textNode.innerText += `${rule}: ${successful ? '✅' : '❌'}\n`;
+    // console.log(rule, successful ? '✅' : '❌', ...errorMsg);
 })

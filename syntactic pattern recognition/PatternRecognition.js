@@ -57,7 +57,7 @@ export class PatternRecognition {
         const callstack = [axiom];
         do {
             const currentElement = callstack.pop();
-            if (this._isTermElement(currentElement)) {
+            if (PatternRecognition.isTerminalElement(currentElement)) {
                 this._draw(currentElement, start);
                 continue;
             }
@@ -70,10 +70,6 @@ export class PatternRecognition {
         } while (callstack.length != 0)
 
         this.ctx.stroke();
-    }
-
-    _isTermElement(term) {
-        return term.offset instanceof Vector2;
     }
 
     /** 
@@ -139,7 +135,7 @@ export class PatternRecognition {
 
         do {
             const currentElement = callstack.pop();
-            if (this._isTermElement(currentElement)) {
+            if (PatternRecognition.isTerminalElement(currentElement)) {
                 if (this._checkIsTerminFilled(start, currentElement)) {
                     start.add(currentElement.offset);
                 } else {
@@ -204,5 +200,9 @@ export class PatternRecognition {
         }
 
         return true
+    }
+
+    static isTerminalElement(term) {
+        return term.offset instanceof Vector2;
     }
 }
