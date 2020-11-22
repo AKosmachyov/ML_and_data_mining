@@ -9,6 +9,7 @@ iris_data = load_iris()
 
 random.seed(123)
 
+
 def separate_data():
     A = iris_dataset[0:40]
     tA = iris_dataset[40:50]
@@ -20,25 +21,19 @@ def separate_data():
     test = np.concatenate((tA, tB, tC))
     return train, test
 
+
 iris_dataset = np.column_stack(
     (iris_data.data, iris_data.target.T))  # Join X and Y
 iris_dataset = list(iris_dataset)
 
 train, test = separate_data()
 
-train_x = np.array([i[:4] for i in train])
-train_y = np.array([i[4] for i in train])
-test_x = np.array([i[:4] for i in test])
-test_y = np.array([i[4] for i in test])
+# train_x = np.array([i[:4] for i in train])
+# train_y = np.array([i[4] for i in train])
+# test_x = np.array([i[:4] for i in test])
+# test_y = np.array([i[4] for i in test])
 
-dictionary = {
-    'inputLayer': 4,
-    'hiddenLayer': 5,
-    'numberOfClasses': 3,
-    'learningRate': 0.005,
-    'maxEpochs': 700,
-}
-
-perceptron = MultiLayerPerceptron(dictionary)
-perceptron.fit(train_x, train_y)
-perceptron.predict(test_x, test_y)
+net = MultiLayerPerceptron([4, 5, 3])
+net.SGD(train, 1, 50, 0.02)
+# perceptron.fit(train_x, train_y)
+# perceptron.predict(test_x, test_y)
