@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 from sklearn.datasets import fetch_openml
 
@@ -23,9 +24,10 @@ def load_data():
     data = [(image.reshape((784, 1)), vectorized_result(int(label)))
             for image, label in zip(X, y)]
 
-    train_size = 60000
-    test_size = 50
+    random.shuffle(data)
 
-    train, test = data[:train_size], data[-test_size:]
+    train_size = 60000
+
+    train, test = data[:train_size], data[train_size:]
     
     return (train, test)
