@@ -1,6 +1,6 @@
 # Multi layer perceptron
 
-<!-- ![Result](./maximin.png) -->
+![Result](./network-result.png)
 
 ## Installation
 ```bash
