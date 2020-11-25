@@ -1,39 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+from sklearn.datasets import fetch_openml
 
 from multi_layer_perceptron import MultiLayerPerceptron
-from sklearn.datasets import load_iris
 
-iris_data = load_iris()
+# Load data from https://www.openml.org/d/554
+X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+X = X / 255
 
-random.seed(123)
+for n in range(y.shape[0]):
+    valid_class = int(y[n])
+    y[n] = np.zeros([10, 1])
+    y[n][valid_class][0] = 1
 
+train_size = 60000
+test_size = 50
 
-def separate_data():
-    A = iris_dataset[0:40]
-    tA = iris_dataset[40:50]
-    B = iris_dataset[50:90]
-    tB = iris_dataset[90:100]
-    C = iris_dataset[100:140]
-    tC = iris_dataset[140:150]
-    train = np.concatenate((A, B, C))
-    test = np.concatenate((tA, tB, tC))
-    return train, test
+X_train, X_test = X[:train_size], X[-test_size:]
+y_train, y_test = y[:train_size], y[-test_size:]
 
+train = [(image.reshape((784, 1)), label) for image, label in zip(X_train, y_train)]
+test = [(image.reshape((784, 1)), label) for image, label in zip(X_test, y_test)]
 
-iris_dataset = np.column_stack(
-    (iris_data.data, iris_data.target.T))  # Join X and Y
-iris_dataset = list(iris_dataset)
+net = MultiLayerPerceptron([784, 30, 10])
+net.SGD(train, 30, 10, 3, test_data=test)
 
-train, test = separate_data()
+plt.figure(figsize=(10, 5))
+for i in range(10):
+    l1_plot = plt.subplot(2, 5, i + 1)
+    l1_plot.imshow(X[i].reshape(28, 28), cmap=plt.cm.gray)
+    l1_plot.set_xticks(())
+    l1_plot.set_yticks(())
+    l1_plot.set_xlabel('Class %s' % y[i])
 
-# train_x = np.array([i[:4] for i in train])
-# train_y = np.array([i[4] for i in train])
-# test_x = np.array([i[:4] for i in test])
-# test_y = np.array([i[4] for i in test])
-
-net = MultiLayerPerceptron([4, 5, 3])
-net.SGD(train, 1, 50, 0.02)
-# perceptron.fit(train_x, train_y)
-# perceptron.predict(test_x, test_y)
+plt.show()
