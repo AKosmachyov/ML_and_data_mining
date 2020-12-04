@@ -1,15 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import os,sys,inspect
+
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir) 
+from multi_layer_perceptron import MultiLayerPerceptron, load
 
 import mnist_loader
-from multi_layer_perceptron import MultiLayerPerceptron
+
+random.seed(1)
 
 train, test = mnist_loader.load_data()
-validation = test[-10:]
+validation = test[-1000:]
 
 net = MultiLayerPerceptron([784, 30, 10])
-net.SGD(train, 10, 10, 2.3, test_data=validation)
+net.SGD(train, 75, 10, 0.5)
+net.save("digit_net.json")
+
+# net = load("digit_net.json")
+valid_count = net.evaluate(validation)
+validation_size = len(validation)
+percent = valid_count / len(validation) * 100
+print("accuracy: {0}, size: {1}".format(percent, validation_size))
 
 plt.figure(figsize=(10, 5))
 

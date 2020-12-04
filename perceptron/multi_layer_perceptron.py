@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import json
 
 
 def sigmoid(x):
@@ -116,7 +117,6 @@ class MultiLayerPerceptron():
 
         return (nabla_b, nabla_w)
 
-    # TODO
     def cost_derivative(self, output_activations, y):
         return output_activations - y
 
@@ -128,3 +128,23 @@ class MultiLayerPerceptron():
         test_results = [(np.argmax(self.feedforward(x)), np.argmax(y))
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
+
+    def save(self, filename):
+        data = {
+            "sizes": self.sizes,
+            "weights": [w.tolist() for w in self.weights],
+            "biases": [b.tolist() for b in self.biases],
+        }
+        f = open(filename, "w")
+        json.dump(data, f)
+        f.close()
+
+
+def load(filename):
+    f = open(filename, "r")
+    data = json.load(f)
+    f.close()
+    net = MultiLayerPerceptron(data["sizes"])
+    net.weights = [np.array(w) for w in data["weights"]]
+    net.biases = [np.array(b) for b in data["biases"]]
+    return net
