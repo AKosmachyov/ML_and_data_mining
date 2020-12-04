@@ -129,6 +129,9 @@ class MultiLayerPerceptron():
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
+    def predict(self, x_data):
+        return [np.argmax(self.feedforward(x)) for x in x_data]
+
     def save(self, filename):
         data = {
             "sizes": self.sizes,

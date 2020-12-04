@@ -1,3 +1,4 @@
+# https://stackoverflow.com/questions/35842274/convert-own-image-to-mnists-image
 from PIL import Image, ImageFilter
 
 def imageprepare(argv):
@@ -29,14 +30,11 @@ def imageprepare(argv):
         wleft = int(round(((28 - nwidth) / 2), 0))  # caculate vertical pozition
         newImage.paste(img, (wleft, 4))  # paste resized image on white canvas
 
-    # newImage.save("sample.png
+    # newImage.save("sample.png")
 
     tv = list(newImage.getdata())  # get pixel values
 
     # normalize pixels to 0 and 1. 0 is pure white, 1 is pure black.
     tva = [(255 - x) * 1.0 / 255.0 for x in tv]
-    print(tva)
+    # print(tva)
     return tva
-
-x=imageprepare('./image.png')
-print(len(x))# mnist IMAGES are 28x28=784 pixels
