@@ -13,11 +13,16 @@ pip3 install -U matplotlib
 - train.py - train network based on files from train_{symbol} folder;
 - predict.py - predict result for files from test_{symbol} folder.
 
-The neural network consists of 784 neurons at the input, 64 hidden, 2 outputs, where the first output is the desired symbol. In my case, the first output element is `12` and `K`.
-<img width="400" src="./media/network-result-12.png"> <img width="400" src="./media/network-result-k.png">
+The neural network consists of 784 neurons at the input, 64 hidden, 2 outputs, where the first output is the desired symbol.
+In my case, the first output element is `12` and `K`.
+
+<img width="450" src="./media/network-result-12.png"> <img width="450" src="./media/network-result-k.png">
 
 ### Start instruction 
-1. cd ./own-data;
+1. Open `own-data` folder:
+```bash
+cd ./own-data;
+```
 2. Extract files from `test-train-K.zip` archive;
 3. Move folders from `test-train-K` to `./own-data`:
 ```bash
