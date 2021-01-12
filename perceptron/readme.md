@@ -36,6 +36,14 @@ cd ../
 python3 ./own-data/predict.py
 ```
 
+### Generate images for text
+1. Open `generator.py` file from `own-data` folder;
+2. Check the location of the system fonts and update the font paths if necessary (`font_locations` variable);
+3. Generate images with command `python3 ./generator.py`;
+4. Check results for `K` symbol `cd ./train_K`;
+
+<img width="400" src="./media/symbol-generator.png">
+
 ## Resources
 
 - [Using neural nets to recognize handwritten digits](http://neuralnetworksanddeeplearning.com/chap1.html)
