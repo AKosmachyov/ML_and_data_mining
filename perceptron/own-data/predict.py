@@ -41,7 +41,7 @@ for x, y, fileName in zip(result, Y, files):
 import matplotlib.pyplot as plt
 data_visualization = list(zip(X, files))[: 10]
 fig = plt.figure(figsize=(10, 5))
-fig.suptitle("Is {} symbol".format(predict_for_symbol))
+fig.suptitle("Is {} symbol?".format(predict_for_symbol))
 for i in range(len(data_visualization)):
     x, fileName = data_visualization[i][0], data_visualization[i][1]
     l1_plot = plt.subplot(2, 5, i + 1)
